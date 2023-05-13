@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Anki Connect Deck and Card API
+  title: Deck API
   version: 1.0.0
 paths:
   /createDeck:
@@ -12,91 +12,77 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                deck:
-                  type: string
-                  description: The name of the new deck
-              required:
-                - deck
+              $ref: '#/components/schemas/DeckRequest'
       responses:
         '200':
           description: Deck created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: integer
-                    description: The ID of the created deck
-                  error:
-                    type: string
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: string
-                  error:
-                    type: string
-  /addNote:
+  /addCards:
     post:
-      summary: Add a new card (note)
-      operationId: addNote
+      summary: Add Cards to a deck
+      operationId: addCards
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                deckName:
-                  type: string
-                  description: The deck to add the note to
-                modelName:
-                  type: string
-                  description: The model to use for the note
-                fields:
-                  type: object
-                  description: The fields of the note
-                  additionalProperties:
-                    type: string
-                options:
-                  type: object
-                  description: Optional parameters for creating the note
-                  properties:
-                    allowDuplicate:
-                      type: boolean
-                      description: Whether to allow duplicate notes
-              required:
-                - deckName
-                - modelName
-                - fields
+              $ref: '#/components/schemas/NotesRequest'
       responses:
         '200':
-          description: Note added successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: integer
-                    description: The ID of the created note
-                  error:
-                    type: string
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: string
-                  error:
-                    type: string
+          description: Cards added successfully
+components:
+  schemas:
+    Fields:
+      type: object
+      properties:
+        Front:
+          type: string
+        Back:
+          type: string
+    Media:
+      type: object
+      properties:
+        url:
+          type: string
+        filename:
+          type: string
+        skipHash:
+          type: string
+        fields:
+          type: array
+          items:
+            type: string
+    Note:
+      type: object
+      properties:
+        deckName:
+          type: string
+        modelName:
+          type: string
+        fields:
+          $ref: '#/components/schemas/Fields'
+        tags:
+          type: array
+          items:
+            type: string
+        audio:
+          type: array
+          items:
+            $ref: '#/components/schemas/Media'
+        video:
+          type: array
+          items:
+            $ref: '#/components/schemas/Media'
+        picture:
+          type: array
+          items:
+            $ref: '#/components/schemas/Media'
+    NotesRequest:
+      type: object
+      properties:
+        notes:
+          $ref: '#/components/schemas/Note'
+    DeckRequest:
+      type: object
+      properties:
+        deck:
+          type: string

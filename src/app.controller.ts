@@ -3,23 +3,21 @@ import {
   Get,
   Post,
   Res,
-  Req,
-  Param,
   HttpStatus,
   NotFoundException,
   Injectable,
+  Body,
 } from '@nestjs/common';
 import { join } from 'path';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { HttpService } from '@nestjs/axios';
 import { readFileSync } from 'fs';
 import * as yaml from 'yaml';
+import { DeckRequest, NotesRequest } from './types';
 
 @Controller()
 @Injectable()
 export class AppController {
-  private readonly api_url: string = 'localhost:8765';
-
   constructor(private httpService: HttpService) {}
 
   @Get('/.well-known/ai-plugin.json')
@@ -43,51 +41,45 @@ export class AppController {
     res.sendFile(join(process.cwd(), 'openapi.json'));
   }
 
-  // Define route handlers for GET and POST requests.
-  // The path is extracted from the URL and passed into the handler as a parameter.
-  @Get('/:path')
-  @Post('/:path')
-  wrapper(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Param('path') path: string,
-  ) {
-    const headersRequest = {
-      'Content-Type': 'application/json',
-    };
+  @Get('/logo.png')
+  serveLogo(@Res() res: Response) {
+    res.sendFile(join(process.cwd(), 'logo.png'));
+  }
 
-    const url = `${this.api_url}/${path}`;
-    console.log(`Forwarding call: ${req.method} ${path} -> ${url}`);
+  async invoke(action, version, params = {}) {
+    try {
+      const response = await this.httpService
+        .post('http://127.0.0.1:8765', { action, version, params })
+        .toPromise();
+      const data = response.data;
 
-    if (req.method === 'GET') {
-      this.httpService
-        .get(url, { headers: headersRequest, params: req.query })
-        .subscribe(
-          (response) => res.status(response.status).send(response.data),
-          (error) => {
-            console.error('Error occurred:', error);
-            res
-              .status(500)
-              .send('An error occurred while processing your request.');
-          },
-        );
-    } else if (req.method === 'POST') {
-      console.log(req.headers);
-      this.httpService
-        .post(url, req.body, { headers: headersRequest, params: req.query })
-        .subscribe(
-          (response) => res.status(response.status).send(response.data),
-          (error) => {
-            console.error('Error occurred:', error);
-            res
-              .status(500)
-              .send('An error occurred while processing your request.');
-          },
-        );
-    } else {
-      throw new Error(
-        `Method ${req.method} not implemented in wrapper for path=${path}`,
-      );
+      if (Object.getOwnPropertyNames(data).length != 2) {
+        throw 'response has an unexpected number of fields';
+      }
+      if (!data.hasOwnProperty('error')) {
+        throw 'response is missing required error field';
+      }
+      if (!data.hasOwnProperty('result')) {
+        throw 'response is missing required result field';
+      }
+      if (data.error) {
+        throw data.error;
+      }
+      return data.result;
+    } catch (e) {
+      throw e;
     }
+  }
+
+  @Post('/createDeck')
+  createDeck(@Body() req: DeckRequest) {
+    console.log('createDeck', req.deck);
+    return this.invoke('createDeck', 6, { deck: req.deck });
+  }
+
+  @Post('/addCards')
+  addNotes(@Body() req: NotesRequest) {
+    console.log('addCards', req);
+    return this.invoke('addNotes', 6, req);
   }
 }
