@@ -7,6 +7,7 @@ import {
   Param,
   HttpStatus,
   NotFoundException,
+  Injectable,
 } from '@nestjs/common';
 import { join } from 'path';
 import { Response, Request } from 'express';
@@ -15,6 +16,7 @@ import { readFileSync } from 'fs';
 import * as yaml from 'yaml';
 
 @Controller()
+@Injectable()
 export class AppController {
   private readonly api_url: string = 'localhost:8765';
 
@@ -22,7 +24,8 @@ export class AppController {
 
   @Get('/.well-known/ai-plugin.json')
   serveManifest(@Res() res: Response) {
-    res.sendFile(join(process.cwd(), 'ai-plugin.json'));
+    console.log('Serving manifest', process.cwd());
+    res.sendFile(join(process.cwd() + '/.well-known/', 'ai-plugin.json'));
   }
 
   @Get('/openapi.yaml')

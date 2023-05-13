@@ -6,6 +6,7 @@ paths:
   /createDeck:
     post:
       summary: Create a new deck
+      operationId: createDeck
       requestBody:
         required: true
         content:
@@ -45,6 +46,7 @@ paths:
   /addNote:
     post:
       summary: Add a new card (note)
+      operationId: addNote
       requestBody:
         required: true
         content:
