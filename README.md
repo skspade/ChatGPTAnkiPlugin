@@ -43,6 +43,10 @@ npm run start
 
 This will start the server at http://localhost:3333 (unless you have a different port specified in your `.env` file).
 
+### Using the plugin
+You must switch to the plugin mode in ChatGPT to use the plugin. To do this, click on the `Plugin` button in the top right corner of the ChatGPT interface.
+Then you must install the plugin by going to the Plugin Store, once there click `Develop your own plugin` and enter the URL of the plugin server (http://localhost:3333 by default).
+
 ### Plugin Endpoints
 
 - `GET /.well-known/ai-plugin.json`: This endpoint serves the AI plugin manifest file.
